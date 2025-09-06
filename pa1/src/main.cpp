@@ -78,6 +78,29 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     return projection;
 }
 
+Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
+    Eigen::Matrix3f I = Eigen::Matrix3f::Identity();
+    Eigen::Matrix3f N = Eigen::Matrix3f::Zero();
+    Eigen::Matrix3f R_3;
+    Eigen::Matrix4f R = Eigen::Matrix4f::Identity();
+
+    float alpha = deg2rad(angle);
+    // 归一化旋转轴
+    axis.normalize();
+
+    N(0, 1) = -axis(2);
+    N(0, 2) = axis(1);
+    N(1, 0) = axis(2);
+    N(1, 2) = -axis(0);
+    N(2, 0) = -axis(1);
+    N(2, 1) = axis(0);
+
+    R_3 = cos(alpha) * I + (1 - cos(alpha)) * axis * axis.transpose() + sin(alpha) * N;
+    R.block<3, 3>(0, 0) = R_3;
+
+    return R;
+}
+
 int main(int argc, const char** argv)
 {
     float angle = 0;
@@ -108,10 +131,13 @@ int main(int argc, const char** argv)
     int key = 0;
     int frame_count = 0;
 
+    // 新增：定义旋转轴，默认为 Z 轴
+    Eigen::Vector3f axis = {0, 0, 1};
+
     if (command_line) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        r.set_model(get_model_matrix(angle));
+        r.set_model(get_rotation(axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
@@ -127,7 +153,7 @@ int main(int argc, const char** argv)
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        r.set_model(get_model_matrix(angle));
+        r.set_model(get_rotation(axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
@@ -145,6 +171,19 @@ int main(int argc, const char** argv)
         }
         else if (key == 'd') {
             angle -= 10;
+        }
+        // 新增：添加用于切换轴的按键
+        else if (key == 'x') {
+            axis = {1, 0, 0}; // 切换到 X 轴
+            std::cout << "Rotating around X-axis" << std::endl;
+        }
+        else if (key == 'y') {
+            axis = {0, 1, 0}; // 切换到 Y 轴
+            std::cout << "Rotating around Y-axis" << std::endl;
+        }
+        else if (key == 'z') {
+            axis = {0, 0, 1}; // 切换回 Z 轴
+            std::cout << "Rotating around Z-axis" << std::endl;
         }
     }
 

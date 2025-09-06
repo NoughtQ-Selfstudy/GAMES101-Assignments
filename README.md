@@ -19,7 +19,10 @@
     - 在 Lecture 04 上课当天开放，但学过 Lecture 03 后就可以完成了
     - 虚拟机在我的电脑（MacBook Air, Apple M4, macOS 26）上未能安装成功，故只完成了其中的编程部分
     - 初步学习了 C++ [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) 库（配环境又配了半天...），并巩固齐次坐标的概念
-- [ ] PA1：旋转与投影
+- [x] PA1：旋转与投影
+    - 在 Lecture 05 上课当天开放，但学过 Lecture 04 后就可以完成了
+    - 通过本项目，对 3D 旋转变换（z轴，以及任意过原点的轴（罗德里格斯旋转公式）（属于进阶部分））和透视变换（包括正交变换）更加熟悉
+    - 同时也对 opencv 库有了大致的了解
 - [ ] PA2
 - [ ] PA3
 - [ ] PA4
