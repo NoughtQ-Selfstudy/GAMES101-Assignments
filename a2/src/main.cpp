@@ -32,13 +32,9 @@ double deg2rad(double d) {
     return d / 180 * MY_PI;
 }
 
-
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Copy-paste your implementation from the previous assignment.
-    // 去掉下面两行注释，改变三角形的朝向，使其和实验文档中给出的一致
-    // zNear = -zNear;
-    // zFar = -zFar;
     Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
     Eigen::Matrix4f M_p2o = Eigen::Matrix4f::Identity();
     Eigen::Matrix4f M_o = Eigen::Matrix4f::Identity();

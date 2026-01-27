@@ -41,27 +41,23 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
     return Vector4f(v3.x(), v3.y(), v3.z(), w);
 }
 
-
-static bool insideTriangle(int x, int y, const Vector3f* _v)
+// Change the types of x and y to float for MSAA
+static bool insideTriangle(float x, float y, const Vector3f* _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
-    Vector3f p(x, y, 0.0f);
-    Vector3f sides[3], p_sides[3], c_vec[3];
-    bool is_inside = true;
+    Vector3f p(x, y, 1.0f);
+    Vector3f side, p_side, c_vec[3];
+    bool is_inside;
     
     for (int i = 0; i < 3; ++i) {
-        sides[i] = _v[(i + 1) % 3] - _v[i];
-        p_sides[i] = _v[(i + 1) % 3] - p;
-        c_vec[i] = sides[i].cross(p_sides[i]);
-        for (int j = 0; j < i; ++j) {
-            if (c_vec[i].dot(c_vec[j]) < 0) {
-                is_inside = false;
-                break;
-            }
-        }
-        if (!is_inside)
-            break;
+        side = _v[(i + 1) % 3] - _v[i];
+        p_side = _v[(i + 1) % 3] - p;
+        c_vec[i] = side.cross(p_side);
     }
+
+    is_inside = c_vec[0].dot(c_vec[1]) >= 0 
+                && c_vec[1].dot(c_vec[2]) >= 0 
+                && c_vec[2].dot(c_vec[0]) >= 0;
 
     return is_inside;
 }
@@ -137,11 +133,13 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     float b = std::min({v[0][1], v[1][1], v[2][1]});
     float h = std::max({v[0][1], v[1][1], v[2][1]});
 
-    float c_bias[4][2] = {{0.25, 0}, {0.75, 0}, {0.25, 0.25}, {0.75, 0.75}};
+    int c_bias[4][2] = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    // std::vector<float> sample_buf(width * height * 4);
+
 
     for (int x = l; x <= r; ++x)
         for (int y = b; y <= h; ++y) {
-            // Baseline
+            // // Baseline
             // if (insideTriangle(x + 0.5, y + 0.5, t.v)) {
             //     // If so, use the following code to get the interpolated z value.
             //     auto[alpha, beta, gamma] = computeBarycentric2D(x + 0.5, y + 0.5, t.v);
@@ -150,35 +148,40 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
             //     z_interpolated *= w_reciprocal;
 
             //     // TODO : set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
-            //     if (z_interpolated < z_buf[static_cast<int>(x - l)][static_cast<int>(y - b)]) {
-            //         z_buf[static_cast<int>(x - l)][static_cast<int>(y - b)] = z_interpolated;
+            //     if (z_interpolated < depth_buf[x * width + y]) {
+            //         depth_buf[x * width + y] = z_interpolated;
             //         Vector3f tmp_pt(x, y, 1.0f);
             //         set_pixel(tmp_pt, t.getColor());
             //     }
             // }
 
-            // MSAA 
-            int sample_cnt = 0;
-            float min_depth = std::numeric_limits<float>::infinity();
+            int idx = get_index(x, y);
+
+            // MSAA
             for (int k = 0; k < 4; ++k) {
-                float sample_x = x + c_bias[k][0];
-                float sample_y = y + c_bias[k][1];
+                float sample_x = x + c_bias[k][0] * 0.5 + 0.25;
+                float sample_y = y + c_bias[k][1] * 0.5 + 0.25;
                 if (insideTriangle(sample_x, sample_y, t.v)) {
                     auto[alpha, beta, gamma] = computeBarycentric2D(sample_x, sample_y, t.v);
                     float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                     float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                     z_interpolated *= w_reciprocal;
-                    min_depth = std::min(min_depth, z_interpolated);
-                    ++sample_cnt;
+                    
+                    int sample_idx = idx * 4 + k;
+                    if (z_interpolated < sample_buf[sample_idx]) {
+                        sample_buf[sample_idx] = z_interpolated;
+                        sample_color_buf[sample_idx] = t.getColor();     
+                    }
                 }
             }
-            if (sample_cnt > 0) {
-                int idx = get_index(x, y);
-                if (min_depth < depth_buf[idx]) {
-                    depth_buf[idx] = min_depth;
-                    set_pixel(Vector3f(x, y, 1.0f), t.getColor() * static_cast<float>(sample_cnt / 4.0f));
-                }
+
+            Vector3f color = Vector3f::Zero();
+            // This loop cannot be merged with the previous loop,
+            // otherwise it will miss those sampling points that are not inside the triangle.
+            for (int k = 0; k < 4; ++k) {
+                color += sample_color_buf[idx * 4 + k];
             }
+            set_pixel(Vector3f(x, y, 1.0f), color / 4.0);
         }
 }
 
@@ -202,10 +205,12 @@ void rst::rasterizer::clear(rst::Buffers buff)
     if ((buff & rst::Buffers::Color) == rst::Buffers::Color)
     {
         std::fill(frame_buf.begin(), frame_buf.end(), Eigen::Vector3f{0, 0, 0});
+        std::fill(sample_color_buf.begin(), sample_color_buf.end(), Eigen::Vector3f{0, 0, 0});
     }
     if ((buff & rst::Buffers::Depth) == rst::Buffers::Depth)
     {
         std::fill(depth_buf.begin(), depth_buf.end(), std::numeric_limits<float>::infinity());
+        std::fill(sample_buf.begin(), sample_buf.end(), std::numeric_limits<float>::infinity());
     }
 }
 
@@ -213,6 +218,9 @@ rst::rasterizer::rasterizer(int w, int h) : width(w), height(h)
 {
     frame_buf.resize(w * h);
     depth_buf.resize(w * h);
+
+    sample_color_buf.resize(4 * w * h);
+    sample_buf.resize(4 * w * h);
 }
 
 int rst::rasterizer::get_index(int x, int y)
@@ -225,7 +233,13 @@ void rst::rasterizer::set_pixel(const Eigen::Vector3f& point, const Eigen::Vecto
     //old index: auto ind = point.y() + point.x() * width;
     auto ind = (height-1-point.y())*width + point.x();
     frame_buf[ind] = color;
+}
 
+void rst::rasterizer::set_sample_pixel(const Eigen::Vector3f& point, const Eigen::Vector3f& color)
+{
+    //old index: auto ind = point.y() + point.x() * width;
+    auto ind = (height-1-point.y())*width + point.x();
+    sample_color_buf[ind] = color;
 }
 
 // clang-format on

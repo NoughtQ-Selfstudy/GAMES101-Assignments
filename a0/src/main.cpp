@@ -1,7 +1,7 @@
-#include<cmath>
-#include<Eigen/Core>
-#include<Eigen/Dense>
-#include<iostream>
+#include <cmath>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <iostream>
 
 using Eigen::Matrix3d;
 using Eigen::Vector3d;

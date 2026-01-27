@@ -150,7 +150,7 @@ int main(int argc, const char** argv)
         return 0;
     }
 
-    while (key != 27) {
+    while (key != 27) {   // ESC
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
         r.set_model(get_rotation(axis, angle));

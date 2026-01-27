@@ -67,6 +67,7 @@ namespace rst
         void set_projection(const Eigen::Matrix4f& p);
 
         void set_pixel(const Eigen::Vector3f& point, const Eigen::Vector3f& color);
+        void set_sample_pixel(const Eigen::Vector3f& point, const Eigen::Vector3f& color);
 
         void clear(Buffers buff);
 
@@ -91,8 +92,12 @@ namespace rst
         std::map<int, std::vector<Eigen::Vector3f>> col_buf;
 
         std::vector<Eigen::Vector3f> frame_buf;
-
         std::vector<float> depth_buf;
+
+        std::vector<Eigen::Vector3f> sample_color_buf;
+        std::vector<float> sample_buf;
+
+
         int get_index(int x, int y);
 
         int width, height;
