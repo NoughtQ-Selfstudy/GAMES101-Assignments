@@ -1,5 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <algorithm>
+#include <cmath>
 
 #include "global.hpp"
 #include "rasterizer.hpp"
@@ -7,8 +9,6 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "OBJ_Loader.h"
-
-#include "Utils.hpp"
 
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
@@ -49,10 +49,39 @@ Eigen::Matrix4f get_model_matrix(float angle)
     return translate * rotation * scale;
 }
 
+double deg2rad(double d) {
+    return d / 180 * MY_PI;
+}
+
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
     // TODO: Use the same projection matrix from the previous assignments
-    Eigen::Matrix4f projection;
+    zNear = -zNear; zFar = -zFar;
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f M_p2o = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f M_o = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f M_t = Eigen::Matrix4f::Identity();
+    Eigen::Matrix4f M_s = Eigen::Matrix4f::Identity();
+
+    double t, r;
+
+    M_p2o(0, 0) = zNear;
+    M_p2o(1, 1) = zNear;
+    M_p2o(2, 2) = zNear + zFar;
+    M_p2o(2, 3) = -zNear * zFar;
+    M_p2o(3, 2) = 1;
+    M_p2o(3, 3) = 0;
+
+    t = fabs(zNear) * tan(deg2rad(eye_fov) / 2);
+    r = aspect_ratio * t;
+
+    M_t(2, 3) = -(zNear + zFar) / 2;
+    M_s(0, 0) = 1 / r;
+    M_s(1, 1) = 1 / t;
+    M_s(2, 2) = 2 / (zFar - zNear);
+
+    M_o = M_s * M_t;
+    projection = M_o * M_p2o;
 
     return projection;
 }
@@ -88,7 +117,9 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
-
+        float u = std::min(0.9999f, std::max(0.0f, payload.tex_coords.x()));
+        float v = std::min(0.9999f, std::max(0.0f, payload.tex_coords.y()));
+        return_color = payload.texture->getColorBilinear(u, v);
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -116,7 +147,17 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        float r = (light.position - point).norm();
+        Eigen::Vector3f I = light.intensity;
+        Eigen::Vector3f l = (light.position - point).normalized();
+        Eigen::Vector3f v = (eye_pos - point).normalized();
+        Eigen::Vector3f h = ((v + l) / (v + l).norm()).normalized();
+        
+        Eigen::Vector3f amb_light = ka.cwiseProduct(amb_light_intensity);
+        Eigen::Vector3f dif_light = kd.cwiseProduct((I / (r * r)) * std::max(0.0f, normal.dot(l)));
+        Eigen::Vector3f spe_light = ks.cwiseProduct((I / (r * r)) * pow(std::max(0.0f, normal.dot(h)), p));
 
+        result_color += amb_light + dif_light + spe_light;
     }
 
     return result_color * 255.f;
@@ -146,7 +187,17 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        float r = (light.position - point).norm();
+        Eigen::Vector3f I = light.intensity;
+        Eigen::Vector3f l = (light.position - point).normalized();
+        Eigen::Vector3f v = (eye_pos - point).normalized();
+        Eigen::Vector3f h = ((v + l) / (v + l).norm()).normalized();
         
+        Eigen::Vector3f amb_light = ka.cwiseProduct(amb_light_intensity);
+        Eigen::Vector3f dif_light = kd.cwiseProduct((I / (r * r)) * std::max(0.0f, normal.dot(l)));
+        Eigen::Vector3f spe_light = ks.cwiseProduct((I / (r * r)) * pow(std::max(0.0f, normal.dot(h)), p));
+
+        result_color += amb_light + dif_light + spe_light;
     }
 
     return result_color * 255.f;
@@ -186,7 +237,33 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     // Vector ln = (-dU, -dV, 1)
     // Position p = p + kn * n * h(u,v)
     // Normal n = normalize(TBN * ln)
+    auto [x, y, z] = std::array<float, 3>{normal.x(), normal.y(), normal.z()};
+    auto tmp = std::sqrt(x * x + z * z);
+    Eigen::Vector3f t = {
+        x * y / tmp, 
+        tmp, 
+        z * y / tmp
+    };
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN << t, b, normal;
 
+    // lambda expression (for avoding overflow)
+    auto get_height = [&](float u, float v) {
+        u = std::min(0.9999f, std::max(0.0f, u));
+        v = std::min(0.9999f, std::max(0.0f, v));
+        return payload.texture->getColorBilinear(u, v).norm();
+    };
+    float u = payload.tex_coords.x(), v = payload.tex_coords.y();
+    int w = payload.texture->width, h = payload.texture->height;
+
+    auto dU = kh * kn * (get_height(u + 1.0f / w, v) 
+        - get_height(u, v));
+    auto dV = kh * kn * (get_height(u, v + 1.0f / h) 
+        - get_height(u, v));
+    Eigen::Vector3f ln = { -dU, -dV, 1.0f };
+    point += kn * normal * get_height(u, v);  // Don't miss this statement!
+    normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
 
@@ -194,8 +271,17 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        float r = (light.position - point).norm();
+        Eigen::Vector3f I = light.intensity;
+        Eigen::Vector3f l = (light.position - point).normalized();
+        Eigen::Vector3f v = (eye_pos - point).normalized();
+        Eigen::Vector3f h = ((v + l) / (v + l).norm()).normalized();
+        
+        Eigen::Vector3f amb_light = ka.cwiseProduct(amb_light_intensity);
+        Eigen::Vector3f dif_light = kd.cwiseProduct((I / (r * r)) * std::max(0.0f, normal.dot(l)));
+        Eigen::Vector3f spe_light = ks.cwiseProduct((I / (r * r)) * pow(std::max(0.0f, normal.dot(h)), p));
 
-
+        result_color += amb_light + dif_light + spe_light;
     }
 
     return result_color * 255.f;
@@ -204,7 +290,6 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
 Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 {
-    
     Eigen::Vector3f ka = Eigen::Vector3f(0.005, 0.005, 0.005);
     Eigen::Vector3f kd = payload.color;
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
@@ -234,7 +319,32 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
     // dV = kh * kn * (h(u,v+1/h)-h(u,v))
     // Vector ln = (-dU, -dV, 1)
     // Normal n = normalize(TBN * ln)
+    auto [x, y, z] = std::array<float, 3>{normal.x(), normal.y(), normal.z()};
+    auto tmp = std::sqrt(x * x + z * z);
+    Eigen::Vector3f t = {
+        x * y / tmp, 
+        tmp, 
+        z * y / tmp
+    };
+    Eigen::Vector3f b = normal.cross(t);
+    Eigen::Matrix3f TBN;
+    TBN << t, b, normal;
 
+    // lambda expression (for avoding overflow)
+    auto get_height = [&](float u, float v) {
+        u = std::min(0.9999f, std::max(0.0f, u));
+        v = std::min(0.9999f, std::max(0.0f, v));
+        return payload.texture->getColorBilinear(u, v).norm();
+    };
+    float u = payload.tex_coords.x(), v = payload.tex_coords.y();
+    int w = payload.texture->width, h = payload.texture->height;
+
+    auto dU = kh * kn * (get_height(u + 1.0f / w, v) 
+        - get_height(u, v));
+    auto dV = kh * kn * (get_height(u, v + 1.0f / h) 
+        - get_height(u, v));
+    Eigen::Vector3f ln = { -dU, -dV, 1.0f };
+    normal = (TBN * ln).normalized();
 
     Eigen::Vector3f result_color = {0, 0, 0};
     result_color = normal;
@@ -251,9 +361,16 @@ int main(int argc, const char** argv)
 
     std::string filename = "output.png";
     objl::Loader Loader;
+    // options: "spot/", "bunny/", "rock/", "cube/"
+    std::string obj_path = "../models/spot/";
 
     // Load .obj File
-    bool loadout = Loader.LoadFile(Utils::PathFromAsset("model/spot/spot_triangulated_good.obj"));
+    // correspondance:
+    // spot/  -> spot_triangulated_good.obj
+    // bunny/ -> bunny.obj
+    // rock/  -> rock.obj
+    // cube/  -> cube.obj 
+    bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
     for(auto mesh:Loader.LoadedMeshes)
     {
         for(int i=0;i<mesh.Vertices.size();i+=3)
@@ -271,7 +388,10 @@ int main(int argc, const char** argv)
 
     rst::rasterizer r(700, 700);
 
-    r.set_texture(Texture(Utils::PathFromAsset("model/spot/hmap.jpg")));
+    // rock -> rock.png, spot -> hmap.jpg
+    auto texture_path = "hmap.png";
+    // r.set_texture(Texture(obj_path + texture_path));
+
     std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
 
     if (argc >= 2)
@@ -283,7 +403,10 @@ int main(int argc, const char** argv)
         {
             std::cout << "Rasterizing using the texture shader\n";
             active_shader = texture_fragment_shader;
-            r.set_texture(Texture(Utils::PathFromAsset("model/spot/spot_texture.png")));
+            // spot -> spot_texture.png
+            // rock -> rock.png
+            texture_path = "spot_texture.png";
+            r.set_texture(Texture(obj_path + texture_path));
         }
         else if (argc == 3 && std::string(argv[2]) == "normal")
         {
@@ -302,7 +425,7 @@ int main(int argc, const char** argv)
         }
         else if (argc == 3 && std::string(argv[2]) == "displacement")
         {
-            std::cout << "Rasterizing using the bump shader\n";
+            std::cout << "Rasterizing using the displacement shader\n";
             active_shader = displacement_fragment_shader;
         }
     }
