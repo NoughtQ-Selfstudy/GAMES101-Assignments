@@ -33,7 +33,9 @@
     - 【已修正】感觉自己的超采样代码还是有问题，得到的结果和没有超采样的差不多，只是运行时间变得更久了。但由于时间原因就不再 debug 了
 - [x] Assignment3
     - 具体说明见 [a3/README.md](a3/README.md)
-- [ ] Assignment4
+- [x] Assignment4
+    - 具体说明见 [a4/README.md](a4/README.md)
+    - 相比前几次作业，这次作业代码量少，且难度较低
 - [ ] Assignment5
 - [ ] Assignment6
 - [ ] Assignment7
