@@ -1,6 +1,6 @@
-# GAMES101 Projects
+# GAMES101 Assignments
 
-本仓库记录 GAMES101 Projects 的完成进度。应闫令琪老师要求，仓库设为私有。
+本仓库记录 GAMES101 Assignments 的完成进度。
 
 - 往期作业汇总帖：<http://games-cn.org/forums/topic/allhw/>
 - BBS 讨论区（如果做作业遇到问题，翻一翻会有不少收获）：<https://games-cn.org/forums/forum/graphics-intro/>
