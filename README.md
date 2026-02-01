@@ -36,7 +36,9 @@
 - [x] Assignment4
     - 具体说明见 [a4/README.md](a4/README.md)
     - 相比前几次作业，这次作业代码量少，且难度较低
-- [ ] Assignment5
+- [x] Assignment5
+    - 具体说明见 [a5/README.md](a5/README.md)
+    - 原代码框架有一处错误，见目录 a5 中的 README
 - [ ] Assignment6
 - [ ] Assignment7
 - [ ] Assignment8
