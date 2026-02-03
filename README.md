@@ -39,6 +39,8 @@
 - [x] Assignment5
     - 具体说明见 [a5/README.md](a5/README.md)
     - 原代码框架有一处错误，见目录 a5 中的 README
-- [ ] Assignment6
+- [x] Assignment6
+    - 具体说明见 [a6/README.md](a6/README.md)
+    - 原代码框架有一些错误，见目录 a6 中的 README
 - [ ] Assignment7
 - [ ] Assignment8
