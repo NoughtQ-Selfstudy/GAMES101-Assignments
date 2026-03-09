@@ -42,5 +42,6 @@
 - [x] Assignment6
     - 具体说明见 [a6/README.md](a6/README.md)
     - 原代码框架有一些错误，见目录 a6 中的 README
-- [ ] Assignment7
+- [x] Assignment7
+    - 具体说明见 [a6/README.md](a7/README.md)
 - [ ] Assignment8
