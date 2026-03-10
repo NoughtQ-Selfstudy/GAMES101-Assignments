@@ -44,4 +44,6 @@
     - 原代码框架有一些错误，见目录 a6 中的 README
 - [x] Assignment7
     - 具体说明见 [a6/README.md](a7/README.md)
-- [ ] Assignment8
+- [x] Assignment8
+    - 具体说明见 [a8/README.md](a8/README.md)
+    - 原代码框架有一处错误，见目录 a8 中的 README
