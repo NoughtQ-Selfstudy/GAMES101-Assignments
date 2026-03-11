@@ -12,7 +12,27 @@
     - `bezier` 函数
         - 设置步长（我设置步长为 1e-4）
         - 对于每一步，调用 `recursive_bezier` 计算点的坐标，并仿照 `naive_bezier` 在相应像素点上色
-- 奖励部分：实现对 Bézier 曲线的反走样
+- Bonus 部分：实现对 Bézier 曲线的反走样
     - 类似双线性插值，找出离采样点最接近的 4 个像素点（注意越界处理）
     - 根据采样点离像素点的距离，为像素点分配颜色，距离 > 1 的不分配颜色
     - 像素点颜色为离它最近的采样点为它赋予的颜色
+- 渲染结果：
+    - 基础部分
+
+        <div align=center>
+            <img src="images/baseline/bezier_curve_1.png" width=60% />
+        </div>
+
+        <div align=center>
+            <img src="images/baseline/bezier_curve_2.png" width=60% />
+        </div>
+
+    - Bonus（锯齿感减轻了不少）
+
+        <div align=center>
+            <img src="images/bonus/bezier_curve_1.png" width=60% />
+        </div>
+
+        <div align=center>
+            <img src="images/bonus/bezier_curve_2.png" width=60% />
+        </div>

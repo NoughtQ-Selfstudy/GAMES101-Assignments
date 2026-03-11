@@ -1,6 +1,6 @@
-# GAMES101 Assignments
+# GAMES101 作业
 
-本仓库记录 GAMES101 Assignments 的完成进度。
+本仓库记录 GAMES101 作业的完成情况。
 
 - 往期作业汇总帖：<http://games-cn.org/forums/topic/allhw/>
 - BBS 讨论区（如果做作业遇到问题，翻一翻会有不少收获）：<https://games-cn.org/forums/forum/graphics-intro/>
@@ -9,41 +9,22 @@
 - 个人笔记：<https://note.noughtq.top/software/cg/>
 
 
-## Prerequisites
+## 前置条件
 
 - GAMES101 上课内容
 - 掌握基本的 C++ 语法，对 OOP 有一定理解
 
 
-## Progress
+## 进度
 
-- [x] Assignment0：虚拟机的使用
-    - 在 Lecture 04 上课当天开放，但学过 Lecture 03 后就可以完成了
-    - 虚拟机在我的电脑（MacBook Air, Apple M4, macOS 26）上未能安装成功，故只完成了其中的编程部分
-    - 初步学习了 C++ [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_page) 库（配环境又配了半天...），并巩固齐次坐标的概念
-- [x] Assignment1：旋转与投影
-    - 在 Lecture 05 上课当天开放，但学过 Lecture 04 后就可以完成了
-    - 通过本项目，对 3D 旋转变换（z轴，以及任意过原点的轴（罗德里格斯旋转公式）（属于进阶部分））和透视变换（包括正交变换）更加熟悉
-    - 同时也对 opencv 库有了大致的了解
-    - 其实可以再补充一段用命令行指定任意轴的代码，但因时间问题就不写了（~~其实是懒了~~）
-- [x] Assignment2：三角形和深度缓存
-    - 在 Lecture 07 上课当天开放，学到该讲才能继续完成后面的任务
-    - 本项目有助于熟悉光栅化、深度缓存的实现，以及通过 MSAA 实现反走样（提高部分）
-    - 代码框架和老师上课讲的有些出入——代码框架是左手系的，我（包括很多人）都是按右手系做的（Assignment1）。由于 Assignment1 的投影变换代码会复用到 Assignment2 上，所以最后得到的三角形是上下颠倒的。老师在 Lecture 08 开头说过这没关系
-    - 【已修正】感觉自己的超采样代码还是有问题，得到的结果和没有超采样的差不多，只是运行时间变得更久了。但由于时间原因就不再 debug 了
-- [x] Assignment3
-    - 具体说明见 [a3/README.md](a3/README.md)
-- [x] Assignment4
-    - 具体说明见 [a4/README.md](a4/README.md)
-    - 相比前几次作业，这次作业代码量少，且难度较低
-- [x] Assignment5
-    - 具体说明见 [a5/README.md](a5/README.md)
-    - 原代码框架有一处错误，见目录 a5 中的 README
-- [x] Assignment6
-    - 具体说明见 [a6/README.md](a6/README.md)
-    - 原代码框架有一些错误，见目录 a6 中的 README
-- [x] Assignment7
-    - 具体说明见 [a6/README.md](a7/README.md)
-- [x] Assignment8
-    - 具体说明见 [a8/README.md](a8/README.md)
-    - 原代码框架有一处错误，见目录 a8 中的 README
+>各作业的具体说明见对应目录的 `README.md`。
+
+- [x] 作业 0：虚拟机的使用
+- [x] 作业 1：旋转与投影
+- [x] 作业 2：三角形和深度缓存
+- [x] 作业 3：管线和着色
+- [x] 作业 4：贝塞尔曲线
+- [x] 作业 5：光线与三角形相交
+- [x] 作业 6：加速结构
+- [x] 作业 7：路径追踪
+- [x] 作业 8：质点弹簧系统

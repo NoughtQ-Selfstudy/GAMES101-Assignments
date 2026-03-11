@@ -85,7 +85,6 @@ Eigen::Matrix4f get_rotation(Vector3f axis, float angle) {
     Eigen::Matrix4f R = Eigen::Matrix4f::Identity();
 
     float alpha = deg2rad(angle);
-    // 归一化旋转轴
     axis.normalize();
 
     N(0, 1) = -axis(2);
@@ -132,11 +131,13 @@ int main(int argc, const char** argv)
     int frame_count = 0;
 
     // 新增：定义旋转轴，默认为 Z 轴
-    Eigen::Vector3f axis = {0, 0, 1};
+    // Eigen::Vector3f axis = {0, 0, 1};
+    Eigen::Vector3f axis = {1, 1, 1};
 
     if (command_line) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
+        // r.set_model(get_model_matrix(angle));
         r.set_model(get_rotation(axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
@@ -153,6 +154,7 @@ int main(int argc, const char** argv)
     while (key != 27) {   // ESC
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
+        //  r.set_model(get_model_matrix(angle));
         r.set_model(get_rotation(axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
@@ -164,7 +166,7 @@ int main(int argc, const char** argv)
         cv::imshow("image", image);
         key = cv::waitKey(10);
 
-        std::cout << "frame count: " << frame_count++ << '\n';
+        // std::cout << "frame count: " << frame_count++ << '\n';
 
         if (key == 'a') {
             angle += 10;

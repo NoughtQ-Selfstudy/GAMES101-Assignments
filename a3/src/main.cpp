@@ -151,7 +151,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
         Eigen::Vector3f I = light.intensity;
         Eigen::Vector3f l = (light.position - point).normalized();
         Eigen::Vector3f v = (eye_pos - point).normalized();
-        Eigen::Vector3f h = ((v + l) / (v + l).norm()).normalized();
+        Eigen::Vector3f h = (v + l).normalized();
         
         Eigen::Vector3f amb_light = ka.cwiseProduct(amb_light_intensity);
         Eigen::Vector3f dif_light = kd.cwiseProduct((I / (r * r)) * std::max(0.0f, normal.dot(l)));
@@ -191,7 +191,7 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
         Eigen::Vector3f I = light.intensity;
         Eigen::Vector3f l = (light.position - point).normalized();
         Eigen::Vector3f v = (eye_pos - point).normalized();
-        Eigen::Vector3f h = ((v + l) / (v + l).norm()).normalized();
+        Eigen::Vector3f h = (v + l).normalized();
         
         Eigen::Vector3f amb_light = ka.cwiseProduct(amb_light_intensity);
         Eigen::Vector3f dif_light = kd.cwiseProduct((I / (r * r)) * std::max(0.0f, normal.dot(l)));
