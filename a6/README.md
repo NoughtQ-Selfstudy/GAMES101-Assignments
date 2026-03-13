@@ -50,3 +50,8 @@
 - 代码框架中的一些 bug
     - `Vector3f` 中 `[]` 运算符的 `const` 和非 `const` 版本的返回值都是 `double`，需改为 `float`；并且还要补上非 `const` 版本缺失的实现
     - 由于模型文件不大，所以 BVH 构建和渲染时间相当短，以秒为单位可能无法比对 BVH 和 SAH 方法的执行时间，所以将计时单位改为了毫秒
+- 渲染结果：
+
+	<div align=center>
+		<img src="images/result_NAIVE.png" width=80% />
+	</div>

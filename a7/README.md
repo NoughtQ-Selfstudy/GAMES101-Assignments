@@ -9,7 +9,7 @@
         - 先检查光线是否与场景相交，若连场景都没相交，那后面就没必要判断了
         - 再看光线是否击中发光表面，若是则直接范围发光表面的颜色
         - 计算直接光照时，对于从相交点到采样点的那条射线，要将相交点稍微移开一点点，避免自相交问题
-            - 自相交：由于浮点数精度问题，计算得到的相交点位置会在表面下方一点的位置，如果还是从这个地方打出一条射线，那么就有可能和它真正的位置相交，这就是自相交现象，此时这个地方被认为是挡住的，所以会被渲染成黑色
+            - **自相交**：由于浮点数精度问题，计算得到的相交点位置会在表面下方一点的位置，如果还是从这个地方打出一条射线，那么就有可能和它真正的位置相交，这就是自相交现象，此时这个地方被认为是挡住的，所以会被渲染成黑色
         - 计算射线是否命中光源时也要容许一些误差（也是因为浮点数误差）
     - 其他地方基本上可以按部就班实现（需将伪代码和代码框架中实际有的字段和方法联系起来）
 - 实现多线程（`Renderer.cpp` 中的 `Render` 方法）：利用 C++11 引入的 `thread` 库，创建多个线程，实现并行按行渲染像素。实测结果为（`sp=8`，在 Macbook Air（M4）上测试）：
@@ -35,3 +35,41 @@
     - 注意 `wi` 的方向，要取负号
     - 最终结果还得加上漫反射项 `(1 - F) * Kd / π`
     - 由于设备限制，我只能测试到 `SPP=128` 的情况，但图像噪点还是有点多，所以很难看出微表面材质有什么不同...
+- 渲染结果：
+    - 漫反射
+        - SPP=8
+            
+            <div align=center>
+                <img src="images/result-diffuse-spp-8.png" width=70% />
+            </div>
+        
+        - SPP=32
+        
+            <div align=center>
+                <img src="images/result-diffuse-spp-32.png" width=70% />
+            </div>
+        
+        - SPP=128
+    
+            <div align=center>
+                <img src="images/result-diffuse-spp-128.png" width=70% />
+            </div>
+
+    - 微表面
+        - SPP=8
+            
+            <div align=center>
+                <img src="images/result-microfacet-spp-8.png" width=70% />
+            </div>
+        
+        - SPP=32
+        
+            <div align=center>
+                <img src="images/result-microfacet-spp-32.png" width=70% />
+            </div>
+        
+        - SPP=128
+    
+            <div align=center>
+                <img src="images/result-microfacet-spp-128.png" width=70% />
+            </div>

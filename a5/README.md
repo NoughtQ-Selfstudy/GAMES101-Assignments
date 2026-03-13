@@ -13,3 +13,8 @@
 - 光线与三角形相交（`Triangle.hpp` 中的 `rayTriangleIntersect` 函数）
     - 根据课件给出的公式对照着计算就行了（`tnear`, `u`, `v` 分别对应课件中的 $t, b_1, b_2$）
     - 最后返回的布尔值表示光线和三角形是否相交，判断条件是 `tnear`, `u`, `v` 均不小于 0 且 `u + v` 不超过 1
+- 渲染结果：
+
+    <div align=center>
+        <img src="images/result.png" width=80% />
+    </div>
