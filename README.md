@@ -6,7 +6,7 @@
 - BBS 讨论区（如果做作业遇到问题，翻一翻会有不少收获）：<https://games-cn.org/forums/forum/graphics-intro/>
     >注意，访问前两个网站时不要翻墙，否则大概率无法正常访问。
 - 课程网站：<https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html>
-- 个人笔记：<https://note.noughtq.top/software/cg/>
+- 个人笔记：<https://game.noughtq.top/cg/>
 
 
 ## 前置条件
